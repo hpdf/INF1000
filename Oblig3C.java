@@ -1,117 +1,96 @@
-//Skrevet av Hans Petter de Fine / hptsfine
-//Dato 11.10.13
+//Deloppgave C av Oblig3
+//Skrevet av Hans Petter de Fine (hptsfine)
+//Innleveringsfrist 11.10.2013
 
 import easyIO.*;
 
 class Oblig3C {
-    public static void main(String[] args) {
+    public static void main (String[] args) {
 	//Main-metode, med validering for aa sikre at det kommer inn peker til en tekstfil
 	if (args.length < 1) {
-	    System.out.println("Skriv: > java Oblig3A <tekstfil>");
+	    System.out.println("Skriv: > java Oblig3B <tekstfil>");
 	}//Avslutter if 
 	else {
-	    String  filnavn = args[0];
-	    OrdAnalyse oa = new OrdAnalyse();
-	    oa.analyser(filnavn);
+	        String  filnavn = args[0];
+		Ordpar op = new Ordpar();
+		op.finneOrdpar(filnavn);
+
 	}//Avslutter else
+    }//Avslutter main-metoden
+}//Avslutter klassen Oblig3C
 
-
-
-    }//Avslytter metoden main
-}//Avslutter klassen Oblig3
-
-class OrdAnalyse {
+//En klasse for aa telle opp antall ordpar i filen
+class Ordpar {
     Out skjerm = new Out();
-   
-    String[] ord = new String[5000];
-    int[] antall = new int[5000];
-    int antUnikeOrd = 0;
-    int lengde = 0;
+    FinneOrd fo = new FinneOrd();
+    OrdAnalyse oa = new OrdAnalyse();  	
+ 
 
-    //Analyse-metode i klassen OrdAnalyse, brukes for aa kalle de andre metodene i klassen
-    void analyser(String filnavn) {
 
-	telleOppOrd(filnavn);
-	skrivTilFil();
-	vanligeOrd();
-	ordPar();
+    
+    //Metode for aa kalle de andre metodene som brukes
+    void finneOrdpar(String filnavn) {
 
-    }//Avslutter metoden analyser
+	oa.analyser(filnavn);
+	telleOppAntallPar(filnavn);
+	//	skriveUtAlice();
+	
+    }//Avslutter metoden finneOrdPar
 
-    //Egen metode for aa telle opp alle ordene i tekst-filen
-    void telleOppOrd(String filnavn) {
-    In frafil = new In(filnavn);
-   
-    for (int i = 1; !frafil.endOfFile(); i++) {
-	String s = frafil.inWord();
-  	int sum = 0;
-  
-	for (int j = 0; j < ord.length; j++) {
-	    String t = ord[j];
-	    if (s.equalsIgnoreCase(t)) {
-		antall[j]++;
-	        sum++;
+    //Metode for aa telle opp antall ordpar som brukes i filen
+    void telleOppAntallPar(String filnavn) {
+
+	In frafil = new In(filnavn);
+	String ordet = frafil.inWord();
+	int[][] antallPar = new int[oa.antUnikeOrd][oa.antUnikeOrd];
+
+	String finn = "alice";
+	boolean funn = false;
+	int posisjon = 0;
+
+	while (!frafil.endOfFile()) {
+	    String forrigeOrd = ordet;
+	    boolean funneti = false;
+	    boolean funnetj = false;
+
+	    for (int i = 0;i < oa.antUnikeOrd && !funneti; i++) {
+		if (oa.ord[i].equalsIgnoreCase(forrigeOrd)) {
+		    funneti = true;
+		    ordet = frafil.inWord();
+		    for (int j = 0; j < oa.antUnikeOrd && !funnetj; j++) {
+			if (oa.ord[j].equalsIgnoreCase(ordet)) {
+			    funnetj = true; 
+			    antallPar[i][j]++;
+			}//Avslutter if
+		    }//Avslutter while
 		}//Avslutter if
-	    }//Avslutter indre for-loekke
+	    }//Avslutter while	
+	}//Avslutter ytterste while
 
-	if (sum == 0) {
-	    ord[antUnikeOrd] = s;
-	    antall[antUnikeOrd] = 1;
-	    antUnikeOrd++;	     
-       	}//Avslutter if
-	lengde = i;
-    }//Avslutter for-loekka
-	frafil.close();
 
-    }//Avslutter metoden telleOppOrd
-
-    //Metode for aa skrive fra en fil til en annen fil
-    void skrivTilFil() {
-	Out tilfil = new Out("oppsummering.txt");
-	tilfil.outln("Antall ord lest: " + lengde + " og antall unike ord: " + antUnikeOrd + ".");
-	tilfil.outln("");
-	for (int i = 0; i < antUnikeOrd; i++) {
-	    tilfil.out(ord[i], 20);
-	    tilfil.outln(antall[i], 5, Out.LEFT);
+	//Tester metoden ved aa skrive ut alle ord som etterfoelger Alice
+	//Finner hvilken posisjon i ord-arrayen Alice staar
+	for (int i = 0; i < oa.antUnikeOrd; i++) {
+	    if (oa.ord[i].equalsIgnoreCase(finn)) {
+		funn = true;
+		posisjon = i;
+	    }//Avslutter if      
 	}//Avslutter for-loekka
-
-	tilfil.close();
-    }//Avslutter metoden skrivTilFil
-
-    //Metode for aa finne det ordet som er brukt flest ganger i filen
-    int finneStoerste() {
-	int maks = antall[0];
-	for (int i =1; i < antall.length; i++) {
-	    if (antall[i] > maks) {
-		    maks = antall[i];
+	
+	//Skriver ut alle ordene som er brukt etter denne posisjonen
+	if (funn == true) {
+	    fo.skjermLinje(75);
+	    skjerm.outln("Etter " + oa.ord[posisjon] + " har disse ordene blitt brukt:");
+	    fo.skjermLinje(1);
+	    for (int j = 0; j < antallPar.length; j++) {
+		if (antallPar[posisjon][j] > 0) {
+		    skjerm.outln(oa.ord[j]);
 		}//Avslutter if
-	}//Avslutter for-loekka
-	    return maks;
-    }//Avslutter metoden finneStoerste
-
-    //Metode for aa skrive ut paa skjermen de ordene som er brukt mer enn ti prosent av det ordet som er brukt mest
-    void vanligeOrd() {
-	//Prosenten settes som int selv om den er et desimaltall, siden antall bare er i heltall. Runder ikke av.
-	int prosent = 10;
-	int tiprosent = finneStoerste() / 100*prosent;
-
-	for (int i = 0; i < antall.length; i++) {
-	    if (tiprosent <= antall[i]) {
-		skjerm.out("Vanlige ord: " + ord[i], 20);
-		skjerm.out("(" + antall[i], 5);
-		skjerm.outln(" forekomster)");
-	     
-	    }//Avslutter if-loekken
-	}//Avslutter for-loekken
-
-    }//Avslutter metoden vanligeOrd
-
-
-    void ordPar () {
-	int[][] antallPar = new int[antUnikeOrd][antUnikeOrd];
-	antallPar[4][4] = 9;
-	skjerm.out("Ordpar 4 er: ");
-	skjerm.outln(antallPar[4][4]);
-    }//Avslutter metoden ordPar
-
-}//Avslutter klassen OrdAnalyse
+	    }//Avslutter for-loekke
+	}//Avslutter if
+	else {
+	    fo.skjermLinje(1);
+	    skjerm.outln("Finner ikke Alice, let i naermeste kaninhule.");
+	}//Avslutter else
+    }//Avslutter metoden telleOppAntallPar	
+}//Avslutter klassen Ordpar
